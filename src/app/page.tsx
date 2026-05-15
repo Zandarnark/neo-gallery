@@ -3,7 +3,7 @@
 import Link from 'next/link'
 import { useEffect, useRef } from 'react'
 import { mockExhibitions } from '@/lib/mock-data'
-import { ArrowRight, Sparkles, Monitor, Smartphone } from 'lucide-react'
+import { ArrowDown, ArrowRight, Sparkles, Monitor, Smartphone } from 'lucide-react'
 import { ScrollReveal, StaggerContainer, StaggerItem, CountUp } from '@/components/effects/scroll-reveal'
 import { Magnetic } from '@/components/effects/magnetic'
 import { ParallaxCard, GlitchText, SectionDivider } from '@/components/effects/page-transitions'
@@ -135,10 +135,10 @@ className="hero-cta btn-secondary gap-2 px-8 py-3 text-base opacity-0"
 <motion.div
 animate={{ y: [0, 8, 0] }}
 transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
-className="flex flex-col items-center gap-2 text-muted-foreground/40"
+className="flex h-12 w-12 items-center justify-center rounded-full border border-accent/30 bg-background/50 text-accent/70 backdrop-blur"
+aria-label="Прокрутить вниз"
 >
-<span className="text-xs">Scroll</span>
-<div className="h-8 w-px bg-gradient-to-b from-accent/40 to-transparent" />
+<ArrowDown className="h-6 w-6" />
 </motion.div>
 </div>
 </section>
@@ -153,10 +153,10 @@ className="flex flex-col items-center gap-2 text-muted-foreground/40"
 </h2>
 </ScrollReveal>
 
-<StaggerContainer staggerDelay={0.15} className="grid gap-8 sm:grid-cols-3">
-<StaggerItem>
-<ParallaxCard intensity={6}>
-<div className="card group p-8 text-center">
+<StaggerContainer staggerDelay={0.15} className="grid items-stretch gap-8 sm:grid-cols-3">
+<StaggerItem className="h-full">
+<ParallaxCard intensity={6} className="h-full">
+<div className="card group flex h-full min-h-[260px] flex-col p-8 text-center">
 <div className="mx-auto mb-5 flex h-14 w-14 items-center justify-center rounded-2xl bg-accent/10 transition-colors group-hover:bg-accent/20">
 <Monitor className="h-7 w-7 text-accent transition-transform group-hover:scale-110" />
 </div>
@@ -169,9 +169,9 @@ className="flex flex-col items-center gap-2 text-muted-foreground/40"
 </ParallaxCard>
 </StaggerItem>
 
-<StaggerItem>
-<ParallaxCard intensity={6}>
-<div className="card group p-8 text-center">
+<StaggerItem className="h-full">
+<ParallaxCard intensity={6} className="h-full">
+<div className="card group flex h-full min-h-[260px] flex-col p-8 text-center">
 <div className="mx-auto mb-5 flex h-14 w-14 items-center justify-center rounded-2xl bg-accent/10 transition-colors group-hover:bg-accent/20">
 <Smartphone className="h-7 w-7 text-accent transition-transform group-hover:scale-110" />
 </div>
@@ -184,9 +184,9 @@ className="flex flex-col items-center gap-2 text-muted-foreground/40"
 </ParallaxCard>
 </StaggerItem>
 
-<StaggerItem>
-<ParallaxCard intensity={6}>
-<div className="card group p-8 text-center">
+<StaggerItem className="h-full">
+<ParallaxCard intensity={6} className="h-full">
+<div className="card group flex h-full min-h-[260px] flex-col p-8 text-center">
 <div className="mx-auto mb-5 flex h-14 w-14 items-center justify-center rounded-2xl bg-accent/10 transition-colors group-hover:bg-accent/20">
 <Sparkles className="h-7 w-7 text-accent transition-transform group-hover:scale-110" />
 </div>

@@ -1,14 +1,15 @@
 'use client'
 
 import { useQuery } from '@tanstack/react-query'
-import { createClient } from '@/lib/supabase/client'
+import { createClient, hasSupabaseConfig } from '@/lib/supabase/client'
 
-const supabase = createClient()
+const supabase = hasSupabaseConfig() ? createClient() : null
 
 export function useExhibitions(status?: string) {
   return useQuery({
     queryKey: ['exhibitions', status],
     queryFn: async () => {
+      if (!supabase) return []
       let query = supabase.from('exhibitions').select('*').order('created_at', { ascending: false })
       if (status) query = query.eq('status', status)
       const { data, error } = await query
@@ -22,6 +23,7 @@ export function useExhibition(slug: string) {
   return useQuery({
     queryKey: ['exhibition', slug],
     queryFn: async () => {
+      if (!supabase) return null
       const { data, error } = await supabase
         .from('exhibitions')
         .select('*')
@@ -30,7 +32,7 @@ export function useExhibition(slug: string) {
       if (error) throw error
       return data
     },
-    enabled: !!slug,
+    enabled: !!slug && !!supabase,
   })
 }
 
@@ -38,6 +40,7 @@ export function useArtworks(exhibitionId: string) {
   return useQuery({
     queryKey: ['artworks', exhibitionId],
     queryFn: async () => {
+      if (!supabase) return []
       const { data, error } = await supabase
         .from('artworks')
         .select('*, artists(*)')
@@ -45,7 +48,7 @@ export function useArtworks(exhibitionId: string) {
       if (error) throw error
       return data
     },
-    enabled: !!exhibitionId,
+    enabled: !!exhibitionId && !!supabase,
   })
 }
 
@@ -53,6 +56,7 @@ export function useTickets(exhibitionId: string) {
   return useQuery({
     queryKey: ['tickets', exhibitionId],
     queryFn: async () => {
+      if (!supabase) return []
       const { data, error } = await supabase
         .from('tickets')
         .select('*')
@@ -60,7 +64,7 @@ export function useTickets(exhibitionId: string) {
       if (error) throw error
       return data
     },
-    enabled: !!exhibitionId,
+    enabled: !!exhibitionId && !!supabase,
   })
 }
 
@@ -68,6 +72,7 @@ export function useOrders(userId: string) {
   return useQuery({
     queryKey: ['orders', userId],
     queryFn: async () => {
+      if (!supabase) return []
       const { data, error } = await supabase
         .from('orders')
         .select('*, order_items(*)')
@@ -76,6 +81,6 @@ export function useOrders(userId: string) {
       if (error) throw error
       return data
     },
-    enabled: !!userId,
+    enabled: !!userId && !!supabase,
   })
 }

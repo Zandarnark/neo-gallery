@@ -81,7 +81,7 @@ export interface Database {
           exhibition_id: string
           artist_id: string
           title: string
-          media_type: 'image' | 'video' | '3d' | 'audio'
+          media_type: 'image' | 'video' | 'audio'
           file_url: string
           thumb_url: string | null
           price: number | null
@@ -97,7 +97,7 @@ export interface Database {
           exhibition_id: string
           artist_id: string
           title: string
-          media_type: 'image' | 'video' | '3d' | 'audio'
+          media_type: 'image' | 'video' | 'audio'
           file_url: string
           thumb_url?: string | null
           price?: number | null
@@ -111,7 +111,7 @@ export interface Database {
         }
         Update: {
           title?: string
-          media_type?: 'image' | 'video' | '3d' | 'audio'
+          media_type?: 'image' | 'video' | 'audio'
           file_url?: string
           thumb_url?: string | null
           price?: number | null

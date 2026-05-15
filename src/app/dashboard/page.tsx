@@ -90,10 +90,8 @@ style={{ backgroundImage: `url(${artwork.thumb_url})` }}
 <h3 className="font-semibold transition-colors group-hover:text-accent">{artwork.title}</h3>
 <div className="mt-2 flex items-center justify-between text-sm">
 <span className="text-muted-foreground">
-{artwork.media_type === '3d'
-? '3D модель'
-: artwork.media_type === 'video'
-? 'Видео'
+{artwork.media_type === 'video'
+? 'GIF / Видео-арт'
 : artwork.media_type === 'audio'
 ? 'Аудио'
 : 'Изображение'}

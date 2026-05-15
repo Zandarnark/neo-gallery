@@ -4,7 +4,7 @@ import { useState, useCallback, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useUIStore } from '@/stores/ui-store'
 import { useAnalytics } from '@/hooks/use-analytics'
-import { Eye, Volume2, Video, Box, Image as ImageIcon } from 'lucide-react'
+import { Eye, Volume2, Video, Image as ImageIcon } from 'lucide-react'
 
 interface ArtworkItem {
 id: string
@@ -39,8 +39,6 @@ log('artwork_click', exhibitionId, { artwork_id: id, mode: '2.5d' })
 
 const getMediaIcon = (type: string) => {
 switch (type) {
-case '3d':
-return <Box className="h-4 w-4" />
 case 'video':
 return <Video className="h-4 w-4" />
 case 'audio':
@@ -174,10 +172,8 @@ className="absolute inset-0 flex items-center justify-center"
 <div className="absolute left-3 top-3">
 <span className="flex items-center gap-1 rounded-md bg-black/50 px-2 py-1 text-xs text-white backdrop-blur-sm">
 {getMediaIcon(artwork.media_type)}
-{artwork.media_type === '3d'
-? '3D'
-: artwork.media_type === 'video'
-? 'Видео'
+{artwork.media_type === 'video'
+? 'GIF'
 : artwork.media_type === 'audio'
 ? 'Аудио'
 : 'Фото'}

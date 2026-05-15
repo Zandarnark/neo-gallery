@@ -70,9 +70,7 @@ function createProceduralArtworkTexture(
   )
 
   const palette =
-    artwork.media_type === '3d'
-      ? ['#180d36', '#6336ff', '#00e6ff', '#ffffff']
-      : artwork.media_type === 'video'
+    artwork.media_type === 'video'
       ? ['#210718', '#ff2ed1', '#ff9f1c', '#ffffff']
       : artwork.media_type === 'audio'
       ? ['#03171e', '#00ff9d', '#7df9ff', '#faff00']
@@ -123,7 +121,7 @@ function createProceduralArtworkTexture(
   ctx.globalAlpha = 0.42
   ctx.strokeStyle = '#ffffff'
   ctx.lineWidth = 6
-  const sides = artwork.media_type === 'audio' ? 32 : artwork.media_type === '3d' ? 7 : 5
+  const sides = artwork.media_type === 'audio' ? 32 : artwork.media_type === 'video' ? 7 : 5
   const radius = 80 + (seed % 48)
   ctx.beginPath()
   for (let i = 0; i < sides; i++) {
@@ -484,9 +482,7 @@ function ArtworkFrame({
   const texture = loadedTexture || fallbackTexture
 
   const mediaLabel =
-    artwork.media_type === '3d'
-      ? '3D OBJECT'
-      : artwork.media_type === 'video'
+    artwork.media_type === 'video'
       ? 'VIDEO ART'
       : artwork.media_type === 'audio'
       ? 'AUDIO PIECE'

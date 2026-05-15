@@ -26,19 +26,19 @@ return (
 
 <SectionDivider />
 
-<StaggerContainer staggerDelay={0.12} className="mt-10 grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
+<StaggerContainer staggerDelay={0.12} className="mt-10 grid items-stretch gap-8 sm:grid-cols-2 lg:grid-cols-3">
 {published.map((exhibition) => {
 const artworkCount = mockArtworks.filter(
 (a) => a.exhibition_id === exhibition.id
 ).length
 
 return (
-<StaggerItem key={exhibition.id}>
-<Magnetic strength={0.08}>
-<ParallaxCard intensity={7}>
+<StaggerItem key={exhibition.id} className="h-full">
+<Magnetic strength={0.08} className="h-full">
+<ParallaxCard intensity={7} className="h-full">
 <Link
 href={`/exhibitions/${exhibition.slug}`}
-className="card group block overflow-hidden"
+className="card group flex h-full min-h-[410px] flex-col overflow-hidden"
 >
 <div className="relative aspect-[16/10] overflow-hidden">
 <div
@@ -53,14 +53,14 @@ style={{ backgroundImage: `url(${exhibition.cover_url})` }}
 </span>
 </div>
 </div>
-<div className="p-5">
+<div className="flex flex-1 flex-col p-5">
 <h2 className="mb-1 text-lg font-semibold transition-colors group-hover:text-accent">
 {exhibition.title}
 </h2>
 <p className="mb-3 text-sm text-muted-foreground line-clamp-2">
 {exhibition.description}
 </p>
-<div className="flex items-center justify-between">
+<div className="mt-auto flex items-center justify-between gap-3">
 <div className="flex items-center gap-1 text-xs text-muted-foreground">
 <Calendar className="h-3 w-3" />
 {new Date(exhibition.start_date).toLocaleDateString('ru-RU')} —{' '}

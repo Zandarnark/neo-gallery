@@ -32,7 +32,9 @@ className="text-sm text-muted-foreground transition-colors hover:text-foreground
 Для авторов
 </Link>
 <a
-href="mailto:support@neogallery.ru"
+href="https://web.max.ru/161022481"
+target="_blank"
+rel="noopener noreferrer"
 className="text-sm text-muted-foreground transition-colors hover:text-foreground"
 >
 Поддержка
