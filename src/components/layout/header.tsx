@@ -14,7 +14,7 @@ Eye,
 EyeOff,
 Sun,
 Moon,
-Search,
+ ZoomIn,
 } from 'lucide-react'
 import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
@@ -60,7 +60,7 @@ className="rounded-xl p-2.5 text-muted-foreground transition-all hover:bg-muted 
 aria-label={highContrast ? 'Выключить режим для плоховидящих' : 'Включить режим для плоховидящих'}
 title="Режим для плоховидящих"
 >
-<Search className="h-5 w-5" />
+<ZoomIn className="h-5 w-5" />
 </button>
 
 <button
