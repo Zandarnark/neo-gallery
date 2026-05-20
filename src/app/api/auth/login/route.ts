@@ -21,7 +21,8 @@ export async function POST(request: Request) {
     const response = NextResponse.json({ user })
     await setSessionCookie(response, user)
     return response
-  } catch {
-    return NextResponse.json({ error: 'Не удалось выполнить вход' }, { status: 500 })
+  } catch (e: any) {
+    console.error('login error:', e?.message, e?.stack)
+    return NextResponse.json({ error: 'Не удалось выполнить вход', details: e?.message }, { status: 500 })
   }
 }
