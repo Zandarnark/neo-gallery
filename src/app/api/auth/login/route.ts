@@ -23,7 +23,8 @@ export async function POST(request: Request) {
     return response
   } catch (e) {
     const message = e instanceof Error ? e.message : String(e)
-    console.error('login error:', message)
-    return NextResponse.json({ error: 'Не удалось выполнить вход', details: message }, { status: 500 })
+    const stack = e instanceof Error ? e.stack : undefined
+    console.error('login error:', message, stack)
+    return NextResponse.json({ error: 'Не удалось выполнить вход', details: message, stack }, { status: 500 })
   }
 }
