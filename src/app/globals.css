@@ -85,6 +85,10 @@ transition: background 0.25s ease, color 0.25s ease;
 overflow-x: hidden;
 }
 
+.zoom-shell {
+  transition: transform 0.2s ease;
+}
+
 :focus-visible {
 outline: 2px solid var(--accent);
 outline-offset: 2px;

@@ -1,176 +1,140 @@
--- NeoGallery Database Schema
--- Run this in Supabase SQL Editor
+create extension if not exists pgcrypto;
 
--- Enable UUID extension
-CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
-
--- ============================================
--- USERS
--- ============================================
-CREATE TABLE IF NOT EXISTS users (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-  email TEXT NOT NULL UNIQUE,
-  role TEXT NOT NULL DEFAULT 'visitor' CHECK (role IN ('visitor', 'artist', 'admin')),
-  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-  avatar_url TEXT
+create table if not exists public.users (
+  id text primary key,
+  email text not null unique,
+  password_hash text not null,
+  role text not null check (role in ('visitor', 'artist', 'admin')) default 'visitor',
+  avatar_url text,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
 );
 
--- ============================================
--- ARTISTS
--- ============================================
-CREATE TABLE IF NOT EXISTS artists (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-  user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-  bio TEXT,
-  payout_account TEXT,
-  tier TEXT NOT NULL DEFAULT 'free' CHECK (tier IN ('free', 'pro', 'premium')),
-  UNIQUE(user_id)
+create table if not exists public.exhibitions (
+  id text primary key,
+  title text not null,
+  slug text not null unique,
+  status text not null check (status in ('draft', 'published', 'archived')) default 'published',
+  start_date date not null,
+  end_date date,
+  cover_url text,
+  description text,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
 );
 
--- ============================================
--- EXHIBITIONS
--- ============================================
-CREATE TABLE IF NOT EXISTS exhibitions (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-  title TEXT NOT NULL,
-  slug TEXT NOT NULL UNIQUE,
-  status TEXT NOT NULL DEFAULT 'draft' CHECK (status IN ('draft', 'published', 'archived')),
-  start_date DATE NOT NULL,
-  end_date DATE,
-  cover_url TEXT,
-  description TEXT,
-  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+create table if not exists public.artworks (
+  id text primary key,
+  exhibition_id text not null references public.exhibitions(id) on delete cascade,
+  artist_id text references public.users(id) on delete set null,
+  title text not null,
+  media_type text not null check (media_type in ('image', 'video', 'audio')),
+  file_url text not null,
+  thumb_url text,
+  price numeric,
+  license_type text check (license_type in ('personal', 'commercial')),
+  polygon_count integer,
+  lod_levels integer,
+  description text,
+  position_x numeric,
+  position_y numeric,
+  position_z numeric,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
 );
 
--- ============================================
--- ARTWORKS
--- ============================================
-CREATE TABLE IF NOT EXISTS artworks (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-  exhibition_id UUID NOT NULL REFERENCES exhibitions(id) ON DELETE CASCADE,
-  artist_id UUID NOT NULL REFERENCES artists(id) ON DELETE CASCADE,
-  title TEXT NOT NULL,
-  media_type TEXT NOT NULL CHECK (media_type IN ('image', 'video', '3d', 'audio')),
-  file_url TEXT NOT NULL,
-  thumb_url TEXT,
-  price DECIMAL(10, 2),
-  license_type TEXT CHECK (license_type IN ('personal', 'commercial')),
-  polygon_count INTEGER,
-  lod_levels INTEGER,
-  description TEXT,
-  position_x FLOAT NOT NULL DEFAULT 0,
-  position_y FLOAT NOT NULL DEFAULT 0,
-  position_z FLOAT NOT NULL DEFAULT 0
+create table if not exists public.tickets (
+  id text primary key,
+  exhibition_id text not null references public.exhibitions(id) on delete cascade,
+  type text not null check (type in ('single', 'season')),
+  price numeric not null,
+  max_qty integer not null,
+  sold_qty integer not null default 0,
+  perks_json jsonb,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
 );
 
--- ============================================
--- TICKETS
--- ============================================
-CREATE TABLE IF NOT EXISTS tickets (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-  exhibition_id UUID NOT NULL REFERENCES exhibitions(id) ON DELETE CASCADE,
-  type TEXT NOT NULL CHECK (type IN ('single', 'season')),
-  price DECIMAL(10, 2) NOT NULL,
-  max_qty INTEGER NOT NULL DEFAULT 1000,
-  sold_qty INTEGER NOT NULL DEFAULT 0,
-  perks_json JSONB
+create table if not exists public.orders (
+  id text primary key,
+  user_id text not null references public.users(id) on delete cascade,
+  status text not null,
+  total numeric not null,
+  currency text not null default 'RUB',
+  payment_id text not null,
+  created_at timestamptz not null default now()
 );
 
--- ============================================
--- ORDERS
--- ============================================
-CREATE TABLE IF NOT EXISTS orders (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-  user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-  status TEXT NOT NULL DEFAULT 'pending' CHECK (status IN ('pending', 'paid', 'fulfilled', 'refunded', 'expired', 'canceled', 'failed')),
-  total DECIMAL(10, 2) NOT NULL,
-  currency TEXT NOT NULL DEFAULT 'RUB',
-  payment_id TEXT,
-  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+create table if not exists public.order_items (
+  id text primary key,
+  order_id text not null references public.orders(id) on delete cascade,
+  type text not null,
+  ref_id text not null,
+  qty integer not null,
+  price numeric not null
 );
 
--- ============================================
--- ORDER ITEMS
--- ============================================
-CREATE TABLE IF NOT EXISTS order_items (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-  order_id UUID NOT NULL REFERENCES orders(id) ON DELETE CASCADE,
-  type TEXT NOT NULL CHECK (type IN ('ticket', 'merch', 'license', 'subscription')),
-  ref_id UUID NOT NULL,
-  qty INTEGER NOT NULL DEFAULT 1,
-  price DECIMAL(10, 2) NOT NULL
+create table if not exists public.favorites (
+  id text primary key,
+  user_id text not null references public.users(id) on delete cascade,
+  artwork_id text not null references public.artworks(id) on delete cascade,
+  created_at timestamptz not null default now(),
+  unique (user_id, artwork_id)
 );
 
--- ============================================
--- ANALYTICS
--- ============================================
-CREATE TABLE IF NOT EXISTS analytics (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-  session_id TEXT NOT NULL,
-  exhibition_id UUID REFERENCES exhibitions(id) ON DELETE SET NULL,
-  event_type TEXT NOT NULL,
-  payload JSONB,
-  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+create table if not exists public.cart_items (
+  id text primary key,
+  user_id text not null references public.users(id) on delete cascade,
+  type text not null,
+  ref_id text not null,
+  title text not null,
+  price numeric not null,
+  qty integer not null,
+  exhibition_id text,
+  license_type text not null default '',
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now(),
+  unique (user_id, type, ref_id, license_type)
 );
 
--- ============================================
--- PAYMENTS AUDIT (for 54-FZ reporting)
--- ============================================
-CREATE TABLE IF NOT EXISTS payments_audit (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-  payment_id TEXT NOT NULL,
-  event_type TEXT NOT NULL,
-  status_before TEXT,
-  status_after TEXT,
-  webhook_received_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+create table if not exists public.analytics_events (
+  id text primary key,
+  session_id text not null,
+  user_id text references public.users(id) on delete set null,
+  exhibition_id text references public.exhibitions(id) on delete set null,
+  event_type text not null,
+  payload_json jsonb,
+  created_at timestamptz not null default now()
 );
 
--- ============================================
--- INDEXES
--- ============================================
-CREATE INDEX idx_artworks_exhibition ON artworks(exhibition_id);
-CREATE INDEX idx_artworks_artist ON artworks(artist_id);
-CREATE INDEX idx_orders_user ON orders(user_id);
-CREATE INDEX idx_orders_status ON orders(status);
-CREATE INDEX idx_analytics_exhibition ON analytics(exhibition_id);
-CREATE INDEX idx_analytics_session ON analytics(session_id);
-CREATE INDEX idx_payments_audit_payment ON payments_audit(payment_id);
+create or replace function public.set_updated_at()
+returns trigger as $$
+begin
+  new.updated_at = now();
+  return new;
+end;
+$$ language plpgsql;
 
--- ============================================
--- ROW LEVEL SECURITY
--- ============================================
-ALTER TABLE users ENABLE ROW LEVEL SECURITY;
-ALTER TABLE artists ENABLE ROW LEVEL SECURITY;
-ALTER TABLE exhibitions ENABLE ROW LEVEL SECURITY;
-ALTER TABLE artworks ENABLE ROW LEVEL SECURITY;
-ALTER TABLE tickets ENABLE ROW LEVEL SECURITY;
-ALTER TABLE orders ENABLE ROW LEVEL SECURITY;
-ALTER TABLE order_items ENABLE ROW LEVEL SECURITY;
-ALTER TABLE analytics ENABLE ROW LEVEL SECURITY;
-ALTER TABLE payments_audit ENABLE ROW LEVEL SECURITY;
+drop trigger if exists users_set_updated_at on public.users;
+create trigger users_set_updated_at before update on public.users
+for each row execute procedure public.set_updated_at();
 
--- Public read for exhibitions and artworks
-CREATE POLICY "Exhibitions are publicly readable" ON exhibitions FOR SELECT USING (true);
-CREATE POLICY "Artworks are publicly readable" ON artworks FOR SELECT USING (true);
-CREATE POLICY "Tickets are publicly readable" ON tickets FOR SELECT USING (true);
+drop trigger if exists exhibitions_set_updated_at on public.exhibitions;
+create trigger exhibitions_set_updated_at before update on public.exhibitions
+for each row execute procedure public.set_updated_at();
 
--- Users can read their own data
-CREATE POLICY "Users can read own data" ON users FOR SELECT USING (auth.uid() = id);
-CREATE POLICY "Users can update own data" ON users FOR UPDATE USING (auth.uid() = id);
+drop trigger if exists artworks_set_updated_at on public.artworks;
+create trigger artworks_set_updated_at before update on public.artworks
+for each row execute procedure public.set_updated_at();
 
--- Artists can manage their own profile
-CREATE POLICY "Artists can read own profile" ON artists FOR SELECT USING (auth.uid() = user_id);
-CREATE POLICY "Artists can update own profile" ON artists FOR UPDATE USING (auth.uid() = user_id);
+drop trigger if exists tickets_set_updated_at on public.tickets;
+create trigger tickets_set_updated_at before update on public.tickets
+for each row execute procedure public.set_updated_at();
 
--- Orders: users see only their own
-CREATE POLICY "Users can read own orders" ON orders FOR SELECT USING (auth.uid() = user_id);
-CREATE POLICY "Users can create own orders" ON orders FOR INSERT WITH CHECK (auth.uid() = user_id);
+drop trigger if exists cart_items_set_updated_at on public.cart_items;
+create trigger cart_items_set_updated_at before update on public.cart_items
+for each row execute procedure public.set_updated_at();
 
--- Admin policies (simplified for diploma)
-CREATE POLICY "Admins can insert exhibitions" ON exhibitions FOR INSERT WITH CHECK (true);
-CREATE POLICY "Admins can update exhibitions" ON exhibitions FOR UPDATE USING (true);
-CREATE POLICY "Admins can insert artworks" ON artworks FOR INSERT WITH CHECK (true);
-CREATE POLICY "Admins can update artworks" ON artworks FOR UPDATE USING (true);
-
--- Analytics: insert only, no public read
-CREATE POLICY "Analytics insert only" ON analytics FOR INSERT WITH CHECK (true);
+insert into storage.buckets (id, name, public)
+values ('neogallery', 'neogallery', true)
+on conflict (id) do nothing;

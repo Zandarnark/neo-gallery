@@ -2,71 +2,22 @@
 
 import { useEffect } from 'react'
 import { useAuthStore } from '@/stores/auth-store'
-import { createClient, hasSupabaseConfig } from '@/lib/supabase/client'
+import { useCartStore } from '@/stores/cart-store'
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const { setUser, setLoading } = useAuthStore()
+  const refreshUser = useAuthStore((state) => state.refreshUser)
+  const user = useAuthStore((state) => state.user)
+  const syncWithServer = useCartStore((state) => state.syncWithServer)
 
   useEffect(() => {
-    if (!hasSupabaseConfig()) {
-      setLoading(false)
-      return
+    void refreshUser()
+  }, [refreshUser])
+
+  useEffect(() => {
+    if (user) {
+      void syncWithServer()
     }
-
-    const supabase = createClient()
-
-    supabase.auth.getUser().then(({ data: { user } }) => {
-      if (user) {
-        supabase
-          .from('users')
-          .select('*')
-          .eq('id', user.id)
-          .single()
-          .then(({ data }) => {
-            setUser(
-              data
-                ? {
-                    id: data.id,
-                    email: data.email,
-                    role: data.role,
-                    avatarUrl: data.avatar_url,
-                  }
-                : null
-            )
-          })
-      } else {
-        setUser(null)
-      }
-    })
-
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
-      if (session?.user) {
-        supabase
-          .from('users')
-          .select('*')
-          .eq('id', session.user.id)
-          .single()
-          .then(({ data }) => {
-            setUser(
-              data
-                ? {
-                    id: data.id,
-                    email: data.email,
-                    role: data.role,
-                    avatarUrl: data.avatar_url,
-                  }
-                : null
-            )
-          })
-      } else {
-        setUser(null)
-      }
-    })
-
-    return () => subscription.unsubscribe()
-  }, [setUser, setLoading])
+  }, [syncWithServer, user])
 
   return <>{children}</>
 }

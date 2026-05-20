@@ -10,6 +10,7 @@ interface UIState {
   deviceTier: DeviceTier
   reducedMotion: boolean
   highContrast: boolean
+  zoomPercent: 100 | 112
   sidebarOpen: boolean
   artworkModalOpen: boolean
   selectedArtworkId: string | null
@@ -19,6 +20,7 @@ interface UIState {
   setDeviceTier: (tier: DeviceTier) => void
   setReducedMotion: (v: boolean) => void
   setHighContrast: (v: boolean) => void
+  cycleZoom: () => void
   toggleSidebar: () => void
   openArtworkModal: (id: string) => void
   closeArtworkModal: () => void
@@ -32,6 +34,7 @@ export const useUIStore = create<UIState>()(
       deviceTier: 'high',
       reducedMotion: false,
       highContrast: false,
+      zoomPercent: 100,
       sidebarOpen: false,
       artworkModalOpen: false,
       selectedArtworkId: null,
@@ -42,6 +45,8 @@ export const useUIStore = create<UIState>()(
       setDeviceTier: (tier) => set({ deviceTier: tier }),
       setReducedMotion: (v) => set({ reducedMotion: v }),
       setHighContrast: (v) => set({ highContrast: v }),
+      cycleZoom: () =>
+        set((state) => ({ zoomPercent: state.zoomPercent === 100 ? 112 : 100 })),
       toggleSidebar: () => set((s) => ({ sidebarOpen: !s.sidebarOpen })),
       openArtworkModal: (id) =>
         set({ artworkModalOpen: true, selectedArtworkId: id }),
@@ -51,11 +56,12 @@ export const useUIStore = create<UIState>()(
     {
       name: 'neogallery-ui',
       partialize: (state) => ({
-        mode: state.mode,
-        theme: state.theme,
-        highContrast: state.highContrast,
-        reducedMotion: state.reducedMotion,
-      }),
+          mode: state.mode,
+          theme: state.theme,
+          highContrast: state.highContrast,
+          reducedMotion: state.reducedMotion,
+          zoomPercent: state.zoomPercent,
+        }),
     }
   )
 )

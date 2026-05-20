@@ -22,7 +22,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 export function Header() {
 const { count } = useCartStore()
 const { user } = useAuthStore()
-const { mode, setMode, theme, toggleTheme, highContrast, setHighContrast } = useUIStore()
+const { mode, setMode, theme, toggleTheme, highContrast, setHighContrast, zoomPercent, cycleZoom } = useUIStore()
 const [menuOpen, setMenuOpen] = useState(false)
 const itemCount = count()
 
@@ -55,12 +55,21 @@ className="relative text-base font-medium text-muted-foreground transition-color
 
 <div className="flex items-center gap-2">
 <button
-onClick={() => setHighContrast(!highContrast)}
+onClick={cycleZoom}
 className="rounded-xl p-2.5 text-muted-foreground transition-all hover:bg-muted hover:text-foreground"
-aria-label={highContrast ? 'Выключить режим для плоховидящих' : 'Включить режим для плоховидящих'}
-title="Режим для плоховидящих"
+aria-label={`Масштаб сайта: ${zoomPercent}%`}
+title={`Масштаб сайта: ${zoomPercent}%`}
 >
 <ZoomIn className="h-5 w-5" />
+</button>
+
+<button
+onClick={() => setHighContrast(!highContrast)}
+className="rounded-xl p-2.5 text-muted-foreground transition-all hover:bg-muted hover:text-foreground"
+aria-label={highContrast ? 'Выключить высокий контраст' : 'Включить высокий контраст'}
+title="Высокий контраст"
+>
+<span className="text-xs font-bold">HC</span>
 </button>
 
 <button

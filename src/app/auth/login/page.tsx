@@ -3,19 +3,16 @@
 import { useState } from 'react'
 import { useAuthStore } from '@/stores/auth-store'
 import { useRouter } from 'next/navigation'
-import { Eye, EyeOff, Mail, Lock, Palette, Loader2, UserCheck } from 'lucide-react'
+import { Eye, EyeOff, Mail, Lock, Palette, Loader2 } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 
-type RegisterRole = 'visitor' | 'artist'
-
 export default function LoginPage() {
-const { setUser } = useAuthStore()
+const { login, register, setUser } = useAuthStore()
 const router = useRouter()
 const [email, setEmail] = useState('')
 const [password, setPassword] = useState('')
 const [showPassword, setShowPassword] = useState(false)
 const [isSignUp, setIsSignUp] = useState(false)
-const [registerRole, setRegisterRole] = useState<RegisterRole>('visitor')
 const [loading, setLoading] = useState(false)
 const [error, setError] = useState('')
 
@@ -25,52 +22,10 @@ setError('')
 setLoading(true)
 
 try {
-const supabaseModule = await import('@/lib/supabase/client')
-if (!supabaseModule.hasSupabaseConfig()) {
-throw new Error('Supabase пока не подключен. Используйте демо-доступ или добавьте переменные окружения в Vercel.')
-}
-const supabase = supabaseModule.createClient()
-
 if (isSignUp) {
-const { data, error: signUpError } = await supabase.auth.signUp({
-email,
-password,
-})
-if (signUpError) throw signUpError
-if (data.user) {
-const { error: profileError } = await supabase.from('users').upsert({
-id: data.user.id,
-email: data.user.email ?? email,
-role: registerRole,
-avatar_url: null,
-})
-if (profileError) throw profileError
-setUser({
-id: data.user.id,
-email: data.user.email ?? email,
-role: registerRole,
-avatarUrl: null,
-})
-}
+await register(email, password)
 } else {
-const { data, error: signInError } = await supabase.auth.signInWithPassword({
-email,
-password,
-})
-if (signInError) throw signInError
-if (data.user) {
-const { data: profile } = await supabase
-.from('users')
-.select('*')
-.eq('id', data.user.id)
-.single()
-setUser({
-id: data.user.id,
-email: data.user.email ?? email,
-role: profile?.role ?? 'visitor',
-avatarUrl: profile?.avatar_url ?? null,
-})
-}
+await login(email, password)
 }
 
 router.push('/profile')
@@ -81,11 +36,11 @@ setLoading(false)
 }
 }
 
-const demoUsers = [
-{ label: 'Демо: посетитель', role: 'visitor' as const, id: 'demo-user', email: 'demo@neogallery.ru' },
-{ label: 'Демо: автор', role: 'artist' as const, id: 'demo-artist', email: 'artist@neogallery.ru' },
-{ label: 'Демо: админ', role: 'admin' as const, id: 'demo-admin', email: 'admin@neogallery.ru' },
-]
+  const demoUsers = [
+ { label: 'Демо: посетитель', role: 'visitor' as const },
+ { label: 'Демо: автор', role: 'artist' as const },
+ { label: 'Демо: админ', role: 'admin' as const },
+ ]
 
 return (
 <div className="relative flex min-h-[70vh] items-center justify-center overflow-hidden px-4">
@@ -190,40 +145,6 @@ aria-label={showPassword ? 'Скрыть пароль' : 'Показать па�
 </motion.div>
 
 <AnimatePresence>
-{isSignUp && (
-<motion.div
-initial={{ opacity: 0, y: -8 }}
-animate={{ opacity: 1, y: 0 }}
-exit={{ opacity: 0, y: -8 }}
->
-<label className="mb-2 block text-sm font-medium">
-Тип аккаунта
-</label>
-<div className="grid grid-cols-2 gap-2">
-{[
-{ value: 'visitor' as const, label: 'Посетитель' },
-{ value: 'artist' as const, label: 'Автор' },
-].map((role) => (
-<button
-key={role.value}
-type="button"
-onClick={() => setRegisterRole(role.value)}
-className={`flex items-center justify-center gap-2 rounded-lg border px-3 py-2 text-sm font-medium transition-all ${
-registerRole === role.value
-? 'border-accent bg-accent/10 text-accent'
-: 'border-border bg-background/40 text-muted-foreground hover:text-foreground'
-}`}
->
-<UserCheck className="h-4 w-4" />
-{role.label}
-</button>
-))}
-</div>
-</motion.div>
-)}
-</AnimatePresence>
-
-<AnimatePresence>
 {error && (
 <motion.div
 initial={{ opacity: 0, height: 0 }}
@@ -269,7 +190,7 @@ className="font-medium text-accent transition-colors hover:text-accent/80"
 
 <div className="mt-6 border-t border-border/50 pt-6">
 <p className="mb-3 text-center text-xs text-muted-foreground">
-Демо-доступ работает без Supabase, а полноценная регистрация включится после добавления ключей Supabase в Vercel:
+ Быстрый вход для локальной проверки ролей:
 </p>
 <div className="flex flex-col gap-2">
 {demoUsers.map((demo, i) => (
@@ -278,14 +199,27 @@ key={demo.role}
 initial={{ opacity: 0, y: 10 }}
 animate={{ opacity: 1, y: 0 }}
 transition={{ delay: 0.6 + i * 0.1 }}
-onClick={() => {
-setUser({
-id: demo.id,
-email: demo.email,
-role: demo.role,
-avatarUrl: null,
+onClick={async () => {
+setLoading(true)
+setError('')
+try {
+const response = await fetch('/api/auth/demo-login', {
+method: 'POST',
+headers: { 'Content-Type': 'application/json' },
+credentials: 'include',
+body: JSON.stringify({ role: demo.role }),
 })
+const data = await response.json()
+if (!response.ok) {
+throw new Error(data.error || 'Ошибка входа')
+}
+setUser(data.user)
 router.push('/profile')
+} catch (err: unknown) {
+setError(err instanceof Error ? err.message : 'Ошибка входа')
+} finally {
+setLoading(false)
+}
 }}
 className="btn-secondary w-full py-2 text-sm transition-all hover:border-accent/30 hover:shadow-[0_0_15px_rgba(124,91,245,0.08)]"
 >

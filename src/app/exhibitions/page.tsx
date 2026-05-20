@@ -1,14 +1,24 @@
 'use client'
 
 import Link from 'next/link'
-import { mockExhibitions, mockArtworks } from '@/lib/mock-data'
+import { usePublishedExhibitions } from '@/hooks/use-api'
 import { Calendar, ArrowRight } from 'lucide-react'
 import { ScrollReveal, StaggerContainer, StaggerItem } from '@/components/effects/scroll-reveal'
 import { ParallaxCard, SectionDivider, GlitchText } from '@/components/effects/page-transitions'
 import { Magnetic } from '@/components/effects/magnetic'
 
 export default function ExhibitionsPage() {
-const published = mockExhibitions.filter((e) => e.status === 'published')
+const { data } = usePublishedExhibitions()
+const published = (data ?? []) as Array<{
+  id: string
+  slug: string
+  title: string
+  description: string | null
+  start_date: string
+  end_date: string | null
+  cover_url: string | null
+  artwork_count?: number
+}>
 
 return (
 <div className="px-4 py-12">
@@ -28,9 +38,7 @@ return (
 
 <StaggerContainer staggerDelay={0.12} className="mt-10 grid items-stretch gap-8 sm:grid-cols-2 lg:grid-cols-3">
 {published.map((exhibition) => {
-const artworkCount = mockArtworks.filter(
-(a) => a.exhibition_id === exhibition.id
-).length
+const artworkCount = exhibition.artwork_count ?? 0
 
 return (
 <StaggerItem key={exhibition.id} className="h-full">

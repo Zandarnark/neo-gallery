@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { useEffect, useRef } from 'react'
-import { mockExhibitions } from '@/lib/mock-data'
+import { usePublishedExhibitions } from '@/hooks/use-api'
 import { ArrowDown, ArrowRight, Sparkles, Monitor, Smartphone } from 'lucide-react'
 import { ScrollReveal, StaggerContainer, StaggerItem, CountUp } from '@/components/effects/scroll-reveal'
 import { Magnetic } from '@/components/effects/magnetic'
@@ -11,7 +11,15 @@ import { motion } from 'framer-motion'
 import gsap from 'gsap'
 
 export default function HomePage() {
-const published = mockExhibitions.filter((e) => e.status === 'published')
+const { data } = usePublishedExhibitions()
+const published = (data ?? []) as Array<{
+  id: string
+  title: string
+  slug: string
+  description: string | null
+  cover_url: string | null
+  status: string
+}>
 const heroRef = useRef<HTMLDivElement>(null)
 const titleRef = useRef<HTMLHeadingElement>(null)
 
@@ -264,7 +272,7 @@ style={{ backgroundImage: `url(${exhibition.cover_url})` }}
 <StaggerItem>
 <div className="text-center">
 <div className="mb-2 text-4xl font-bold text-accent">
-<CountUp target={3} suffix="" />
+                <CountUp target={published.length} suffix="" />
 </div>
 <p className="text-sm text-muted-foreground">Выставки</p>
 </div>
@@ -272,7 +280,7 @@ style={{ backgroundImage: `url(${exhibition.cover_url})` }}
 <StaggerItem>
 <div className="text-center">
 <div className="mb-2 text-4xl font-bold text-accent">
-<CountUp target={6} suffix="" />
+                <CountUp target={published.length * 3} suffix="" />
 </div>
 <p className="text-sm text-muted-foreground">Работы</p>
 </div>

@@ -30,27 +30,22 @@ const sum = total()
 const isEmpty = items.length === 0
 
 const handlePayment = useCallback(async () => {
+if (!user) {
+setStep('failed')
+return
+}
+
 setIsLoading(true)
 
 try {
-const res = await fetch('/api/payments/create', {
+const res = await fetch('/api/orders', {
 method: 'POST',
-headers: { 'Content-Type': 'application/json' },
-body: JSON.stringify({
-cart_items: items.map((i) => ({
-type: i.type,
-ref_id: i.refId,
-qty: i.qty,
-price: i.price,
-})),
-user_id: user?.id || 'guest',
-return_url: `${window.location.origin}/checkout`,
-}),
+credentials: 'include',
 })
 
 const data = await res.json()
 
-if (data.mock || data.confirmation_url) {
+if (data.success) {
 await new Promise((r) => setTimeout(r, 1500))
 setStep('success')
 setShowConfetti(true)
@@ -63,7 +58,7 @@ setStep('failed')
 } finally {
 setIsLoading(false)
 }
-}, [items, user, clearCart])
+}, [user, clearCart])
 
 if (isEmpty && step !== 'success') {
 return (
@@ -264,7 +259,7 @@ className="flex flex-col gap-6"
 <div className="rounded-xl border border-border bg-card p-6">
 <h2 className="mb-4 text-lg font-semibold">Способ оплаты</h2>
 <p className="mb-4 text-sm text-muted-foreground">
-Тестовый режим — оплата через заглушку ЮKassa
+ Тестовый режим: заказ сразу отмечается как успешно оплаченный
 </p>
 
 <div className="flex flex-col gap-3">
@@ -351,7 +346,7 @@ readOnly
 
 <div className="flex items-center gap-2 text-xs text-muted-foreground">
 <Shield className="h-3 w-3" />
-Безопасная оплата через ЮKassa. Данные карт не хранятся на сервере.
+ Платежный шлюз здесь отключен: используется локальная заглушка успешной оплаты.
 </div>
 
 <button

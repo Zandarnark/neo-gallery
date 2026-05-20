@@ -1,36 +1,89 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# NeoGallery
 
-## Getting Started
+NeoGallery подготовлен для деплоя на Render или Vercel с Supabase как базой данных и файловым хранилищем.
 
-First, run the development server:
+## Локальный запуск
+
+1. Установить зависимости:
+
+```bash
+npm install
+```
+
+2. Создать `.env.local` на основе `.env.example`.
+
+Минимально нужны такие переменные:
+
+```env
+JWT_SECRET=change-me-to-a-long-random-string
+ADMIN_EMAIL=admin@neogallery.local
+ADMIN_PASSWORD=admin123456
+NEXT_PUBLIC_APP_URL=http://localhost:3000
+NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key
+SUPABASE_SERVICE_ROLE_KEY=your-service-role-key
+SUPABASE_STORAGE_BUCKET=neogallery
+```
+
+3. Запустить проект:
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+4. Открыть `http://localhost:3000`
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Подготовка Supabase
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+1. Создай проект в Supabase
+2. Выполни SQL из `supabase/schema.sql`
+3. Создай storage bucket `neogallery` или укажи свое имя в `SUPABASE_STORAGE_BUCKET`
+4. Добавь первого администратора вручную в таблицу `users` или используй сид-скрипт проекта
 
-## Learn More
+## Что нужно перенести в Supabase
 
-To learn more about Next.js, take a look at the following resources:
+- таблицы из `supabase/schema.sql`
+- изображения в Supabase Storage
+- пользователей, выставки, работы, билеты и заказы
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Что уже работает
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+- регистрация и вход без Supabase
+- роли `visitor`, `artist`, `admin`
+- автоматическое создание первого администратора
+- Supabase Postgres как основная база
+- серверная корзина для авторизованных пользователей
+- заказы с mock-оплатой
+- избранное
+- админка с управлением ролями, выставками и работами
 
-## Deploy on Vercel
+## Важно
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+- для гостей корзина хранится локально в браузере
+- для авторизованных пользователей корзина синхронизируется через Supabase
+- платежи сейчас только тестовые заглушки
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## Деплой
+
+### Render
+
+1. Подключи GitHub-репозиторий
+2. Build Command:
+
+```bash
+npm install && npm run build
+```
+
+3. Start Command:
+
+```bash
+npm run start
+```
+
+4. Добавь все переменные окружения из `.env.example`
+
+### Vercel
+
+1. Импортируй проект в Vercel
+2. Добавь переменные окружения из `.env.example`
+3. Убедись, что схема и storage уже созданы в Supabase

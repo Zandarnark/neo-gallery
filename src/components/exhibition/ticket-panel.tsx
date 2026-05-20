@@ -16,7 +16,7 @@ interface TicketPanelProps {
 }
 
 export function TicketPanel({ tickets, exhibitionTitle }: TicketPanelProps) {
-  const { addItem } = useCartStore()
+  const { addItem, hasItem } = useCartStore()
 
   return (
     <div className="border-t border-border bg-muted/30 px-4 py-12">
@@ -26,6 +26,8 @@ export function TicketPanel({ tickets, exhibitionTitle }: TicketPanelProps) {
           {tickets.map((ticket) => {
             const isSeason = ticket.type === 'season'
             const label = isSeason ? 'Сезонный билет' : 'Разовый билет'
+            const cartId = `ticket-${ticket.id}`
+            const alreadyAdded = hasItem(cartId)
             const perks = ticket.perks_json
               ? Object.entries(ticket.perks_json)
                   .map(([k, v]) => `${k}: ${v}`)
@@ -63,20 +65,23 @@ export function TicketPanel({ tickets, exhibitionTitle }: TicketPanelProps) {
                   </p>
                 </div>
                 <button
-                  onClick={() =>
+                  onClick={() => {
+                    if (alreadyAdded) return
+
                     addItem({
-                      id: `ticket-${ticket.id}`,
+                      id: cartId,
                       type: 'ticket',
                       refId: ticket.id,
                       title: `${label} — ${exhibitionTitle}`,
                       price: ticket.price,
                       qty: 1,
                     })
-                  }
-                  className="btn-primary mt-4 gap-2"
+                  }}
+                  disabled={alreadyAdded}
+                  className="btn-primary mt-4 gap-2 disabled:cursor-not-allowed disabled:opacity-70"
                 >
                   <ShoppingCart className="h-4 w-4" />
-                  В корзину
+                  {alreadyAdded ? 'Добавлено!' : 'В корзину'}
                 </button>
               </div>
             )

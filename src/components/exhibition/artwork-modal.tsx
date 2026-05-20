@@ -5,7 +5,7 @@ import Image from 'next/image'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useUIStore } from '@/stores/ui-store'
 import { useCartStore } from '@/stores/cart-store'
-import { mockArtworks } from '@/lib/mock-data'
+import { useExhibitionArtworks } from '@/components/exhibition/exhibition-artwork-context'
 import {
   X,
   ShoppingCart,
@@ -31,10 +31,11 @@ interface ArtworkModalData {
 export function ArtworkModal() {
   const { artworkModalOpen, selectedArtworkId, closeArtworkModal } =
     useUIStore()
-  const { addItem } = useCartStore()
+  const { addItem, hasItem } = useCartStore()
   const [zoomed, setZoomed] = useState(false)
+  const artworks = useExhibitionArtworks()
 
-  const artwork = mockArtworks.find((a) => a.id === selectedArtworkId) as
+  const artwork = artworks.find((item) => item.id === selectedArtworkId) as
     | ArtworkModalData
     | undefined
 
@@ -64,6 +65,8 @@ export function ArtworkModal() {
     artwork.media_type === 'image'
       ? artwork.file_url || artwork.thumb_url
       : artwork.thumb_url || artwork.file_url
+  const cartId = `license-${artwork.id}`
+  const alreadyAdded = hasItem(cartId)
 
   const getMediaLabel = () => {
     switch (artwork.media_type) {
@@ -204,9 +207,11 @@ export function ArtworkModal() {
                       </span>
                     </div>
                     <button
-                      onClick={() =>
+                      onClick={() => {
+                        if (alreadyAdded) return
+
                         addItem({
-                          id: `license-${artwork.id}`,
+                          id: cartId,
                           type: 'license',
                           refId: artwork.id,
                           title: artwork.title,
@@ -217,11 +222,12 @@ export function ArtworkModal() {
                             | 'commercial'
                             | undefined,
                         })
-                      }
-                      className="btn-primary w-full gap-2 py-3"
+                      }}
+                      disabled={alreadyAdded}
+                      className="btn-primary w-full gap-2 py-3 disabled:cursor-not-allowed disabled:opacity-70"
                     >
                       <ShoppingCart className="h-4 w-4" />
-                      Добавить в корзину
+                      {alreadyAdded ? 'Добавлено!' : 'Добавить в корзину'}
                     </button>
                   </div>
                 )}

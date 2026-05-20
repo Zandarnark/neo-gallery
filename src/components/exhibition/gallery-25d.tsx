@@ -159,12 +159,12 @@ exit={{ opacity: 0, scale: 0.9 }}
 transition={{ duration: 0.2 }}
 className="absolute inset-0 flex items-center justify-center"
 >
-<div className="flex items-center gap-2 rounded-full bg-white/20 px-4 py-2 backdrop-blur-md transition-transform group-hover:scale-105">
-<Eye className="h-4 w-4 text-white" />
-<span className="text-sm font-medium text-white">
-Подробнее
-</span>
-</div>
+                    <div className="flex items-center gap-2 rounded-full bg-white/20 px-4 py-2 backdrop-blur-md transition-transform group-hover:scale-105">
+                      <Eye className="h-4 w-4 text-white" />
+                      <span className="text-sm font-medium text-white">
+                        Открыть карточку
+                      </span>
+                    </div>
 </motion.div>
 )}
 </AnimatePresence>

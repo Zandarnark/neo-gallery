@@ -10,6 +10,8 @@ import { AmbientParticles } from '@/components/effects/ambient-particles'
 import { CursorGlow } from '@/components/effects/cursor-glow'
 import { NoiseOverlay } from '@/components/effects/page-transitions'
 import { ErrorBoundary } from '@/components/error-boundary'
+import { ZoomShell } from '@/components/layout/zoom-shell'
+import { PageLoadingOverlay } from '@/components/layout/page-loading-overlay'
 
 const geistSans = localFont({
 src: './fonts/GeistVF.woff',
@@ -45,14 +47,17 @@ className={`${geistSans.variable} ${geistMono.variable} font-sans antialiased`}
 <Providers>
 <AuthProvider>
 <ThemeProvider>
+<PageLoadingOverlay />
 <AmbientParticles />
 <CursorGlow />
 <NoiseOverlay />
 <Header />
 <ErrorBoundary>
+<ZoomShell>
 <main id="main-content" className="relative z-10 min-h-[calc(100vh-8rem)]">
 {children}
 </main>
+</ZoomShell>
 </ErrorBoundary>
 <Footer />
 </ThemeProvider>

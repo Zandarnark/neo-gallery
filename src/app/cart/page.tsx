@@ -1,6 +1,7 @@
 'use client'
 
 import { useCartStore } from '@/stores/cart-store'
+import { useAuthStore } from '@/stores/auth-store'
 import Link from 'next/link'
 import { Trash2, Minus, Plus, ShoppingCart, ArrowRight } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
@@ -9,6 +10,7 @@ import { Magnetic } from '@/components/effects/magnetic'
 
 export default function CartPage() {
 const { items, removeItem, updateQty, clearCart, total } = useCartStore()
+const user = useAuthStore((state) => state.user)
 const sum = total()
 const isEmpty = items.length === 0
 
@@ -141,6 +143,11 @@ className="text-2xl font-bold text-accent"
 {sum.toLocaleString('ru-RU')} ₽
 </motion.span>
 </div>
+{!user && (
+<p className="mb-4 text-sm text-muted-foreground">
+Войдите в аккаунт перед оформлением заказа, чтобы корзина синхронизировалась между браузерами и заказ сохранился в профиле.
+</p>
+)}
 <div className="flex gap-4">
 <Magnetic strength={0.1}>
 <Link

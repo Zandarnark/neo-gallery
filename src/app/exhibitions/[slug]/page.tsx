@@ -1,31 +1,25 @@
 import { notFound } from 'next/navigation'
-import { mockExhibitions, mockArtworks, mockTickets } from '@/lib/mock-data'
 import { ExhibitionView } from '@/components/exhibition/exhibition-view'
+import { initializeDatabase } from '@/lib/db/init'
+import { getExhibitionBySlug } from '@/lib/db/repositories/exhibitions'
 
-export function generateStaticParams() {
-  return mockExhibitions.map((e) => ({ slug: e.slug }))
-}
+export const dynamic = 'force-dynamic'
 
 export default async function ExhibitionPage({
   params,
 }: {
   params: { slug: string }
 }) {
-  const exhibition = mockExhibitions.find((e) => e.slug === params.slug)
-  if (!exhibition) notFound()
+  initializeDatabase()
+  const data = await getExhibitionBySlug(params.slug)
 
-  const artworks = mockArtworks.filter(
-    (a) => a.exhibition_id === exhibition.id
-  )
-  const tickets = mockTickets.filter(
-    (t) => t.exhibition_id === exhibition.id
-  )
+  if (!data) notFound()
 
   return (
     <ExhibitionView
-      exhibition={exhibition}
-      artworks={artworks}
-      tickets={tickets}
+      exhibition={data.exhibition}
+      artworks={data.artworks}
+      tickets={data.tickets}
     />
   )
 }

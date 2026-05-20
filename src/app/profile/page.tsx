@@ -3,7 +3,7 @@
 import { useAuthStore } from '@/stores/auth-store'
 import { useRouter } from 'next/navigation'
 import { useEffect } from 'react'
-import { mockOrders } from '@/lib/mock-data'
+import { useFavorites, useOrders } from '@/hooks/use-api'
 import {
 User,
 Package,
@@ -21,6 +21,8 @@ import { GenerativeBg } from '@/components/effects/generative-bg'
 export default function ProfilePage() {
 const { user, logout } = useAuthStore()
 const router = useRouter()
+const { data: ordersData } = useOrders()
+const { data: favoritesData } = useFavorites()
 
 useEffect(() => {
 if (!user) router.push('/auth/login')
@@ -28,7 +30,18 @@ if (!user) router.push('/auth/login')
 
 if (!user) return null
 
-const orders = mockOrders.filter((o) => o.user_id === 'u1' || o.user_id === user.id)
+const orders = (ordersData?.orders ?? []) as Array<{
+  id: string
+  status: string
+  created_at: string
+  total: number
+  order_items: Array<{ id: string; type: string }>
+}>
+const favorites = (favoritesData?.favorites ?? []) as Array<{
+  id: string
+  title: string
+  thumb_url: string
+}>
 const ticketCount = orders.reduce((sum, o) => sum + o.order_items.filter((i) => i.type === 'ticket').length, 0)
 const licenseCount = orders.reduce((sum, o) => sum + o.order_items.filter((i) => i.type === 'license').length, 0)
 
@@ -170,6 +183,27 @@ year: 'numeric',
 {order.total.toLocaleString('ru-RU')} ₽
 </span>
 </motion.div>
+))}
+</div>
+)}
+</div>
+</ScrollReveal>
+
+<ScrollReveal delay={0.35}>
+<div className="mt-8">
+<h2 className="mb-4 text-xl font-semibold">Избранное</h2>
+{favorites.length === 0 ? (
+<p className="text-muted-foreground">Пока ничего не добавлено в избранное</p>
+) : (
+<div className="grid gap-4 sm:grid-cols-2">
+{favorites.map((favorite) => (
+<div key={favorite.id} className="card flex items-center gap-4 p-4">
+<div
+className="h-16 w-16 rounded-lg bg-cover bg-center"
+style={{ backgroundImage: `url(${favorite.thumb_url})` }}
+/>
+<span className="font-medium">{favorite.title}</span>
+</div>
 ))}
 </div>
 )}
