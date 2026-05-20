@@ -5,6 +5,7 @@ import { useAuthStore } from '@/stores/auth-store'
 import { useRouter } from 'next/navigation'
 import { Eye, EyeOff, Mail, Lock, Palette, Loader2 } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
+import { readApiResponse } from '@/hooks/use-api'
 
 export default function LoginPage() {
 const { login, register, setUser } = useAuthStore()
@@ -203,18 +204,15 @@ onClick={async () => {
 setLoading(true)
 setError('')
 try {
-const response = await fetch('/api/auth/demo-login', {
-method: 'POST',
-headers: { 'Content-Type': 'application/json' },
-credentials: 'include',
-body: JSON.stringify({ role: demo.role }),
-})
-const data = await response.json()
-if (!response.ok) {
-throw new Error(data.error || 'Ошибка входа')
-}
-setUser(data.user)
-router.push('/profile')
+                const response = await fetch('/api/auth/demo-login', {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  credentials: 'include',
+                  body: JSON.stringify({ role: demo.role }),
+                })
+                const data = await readApiResponse<{ user: ReturnType<typeof useAuthStore.getState>['user']; error?: string }>(response)
+                setUser(data.user)
+                router.push('/profile')
 } catch (err: unknown) {
 setError(err instanceof Error ? err.message : 'Ошибка входа')
 } finally {

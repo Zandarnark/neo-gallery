@@ -3,13 +3,33 @@
 import { useQuery } from '@tanstack/react-query'
 import type { ExhibitionDetailsDto } from '@/lib/api/types'
 
-async function getJson<T>(url: string): Promise<T> {
-  const response = await fetch(url, { credentials: 'include' })
-  const data = await response.json()
+export async function readApiResponse<T>(response: Response): Promise<T> {
+  const text = await response.text()
+  let data = {} as T
+
+  if (text) {
+    try {
+      data = JSON.parse(text) as T
+    } catch {
+      throw new Error(response.ok ? 'Сервер вернул некорректный ответ' : 'Сервер вернул ошибку без JSON')
+    }
+  }
 
   if (!response.ok) {
-    throw new Error(data.error || 'Request failed')
+    const error =
+      typeof data === 'object' && data !== null && 'error' in data
+        ? String((data as { error?: unknown }).error ?? 'Request failed')
+        : 'Request failed'
+
+    throw new Error(error)
   }
+
+  return data
+}
+
+async function getJson<T>(url: string): Promise<T> {
+  const response = await fetch(url, { credentials: 'include' })
+  const data = await readApiResponse<T & { error?: string }>(response)
 
   return data
 }

@@ -1,4 +1,5 @@
 import { create } from 'zustand'
+import { readApiResponse } from '@/hooks/use-api'
 
 interface AuthState {
   user: {
@@ -25,7 +26,7 @@ export const useAuthStore = create<AuthState>()((set) => ({
     set({ isLoading: true })
     try {
       const response = await fetch('/api/auth/me', { credentials: 'include' })
-      const data = await response.json()
+      const data = await readApiResponse<{ user?: AuthState['user'] }>(response)
       set({ user: data.user ?? null, isLoading: false })
     } catch {
       set({ user: null, isLoading: false })
@@ -39,11 +40,7 @@ export const useAuthStore = create<AuthState>()((set) => ({
       body: JSON.stringify({ email, password }),
     })
 
-    const data = await response.json()
-
-    if (!response.ok) {
-      throw new Error(data.error || 'Ошибка входа')
-    }
+    const data = await readApiResponse<{ user: AuthState['user']; error?: string }>(response)
 
     set({ user: data.user, isLoading: false })
   },
@@ -55,11 +52,7 @@ export const useAuthStore = create<AuthState>()((set) => ({
       body: JSON.stringify({ email, password }),
     })
 
-    const data = await response.json()
-
-    if (!response.ok) {
-      throw new Error(data.error || 'Ошибка регистрации')
-    }
+    const data = await readApiResponse<{ user: AuthState['user']; error?: string }>(response)
 
     set({ user: data.user, isLoading: false })
   },
