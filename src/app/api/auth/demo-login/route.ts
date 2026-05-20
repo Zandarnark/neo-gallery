@@ -29,8 +29,9 @@ export async function POST(request: Request) {
     const response = NextResponse.json({ user: publicUser })
     await setSessionCookie(response, publicUser)
     return response
-  } catch (e: any) {
-    console.error('demo-login error:', e?.message, e?.stack)
-    return NextResponse.json({ error: 'Не удалось выполнить демо-вход', details: e?.message }, { status: 500 })
+  } catch (e) {
+    const message = e instanceof Error ? e.message : String(e)
+    console.error('demo-login error:', message)
+    return NextResponse.json({ error: 'Не удалось выполнить демо-вход', details: message }, { status: 500 })
   }
 }
