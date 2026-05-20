@@ -18,9 +18,16 @@ declare global {
 
 export function getSupabaseAdmin() {
   if (!globalThis.__neoGallerySupabaseAdmin) {
+    const supabaseKey =
+      process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+
+    if (!supabaseKey) {
+      throw new Error('Missing required environment variable: SUPABASE_SERVICE_ROLE_KEY')
+    }
+
     globalThis.__neoGallerySupabaseAdmin = createClient<Database>(
       getEnv('NEXT_PUBLIC_SUPABASE_URL'),
-      getEnv('SUPABASE_SERVICE_ROLE_KEY'),
+      supabaseKey,
       {
         auth: {
           autoRefreshToken: false,
