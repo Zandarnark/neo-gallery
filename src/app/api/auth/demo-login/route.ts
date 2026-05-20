@@ -8,9 +8,9 @@ import type { UserRole } from '@/lib/db/types'
 export const dynamic = 'force-dynamic'
 
 export async function POST(request: Request) {
-  initializeDatabase()
-
   try {
+    initializeDatabase()
+
     const body = await request.json()
     const role = String(body.role ?? '') as UserRole
 
@@ -29,7 +29,8 @@ export async function POST(request: Request) {
     const response = NextResponse.json({ user: publicUser })
     await setSessionCookie(response, publicUser)
     return response
-  } catch {
+  } catch (error) {
+    console.error('[POST /api/auth/demo-login]', error)
     return NextResponse.json({ error: 'Не удалось выполнить демо-вход' }, { status: 500 })
   }
 }

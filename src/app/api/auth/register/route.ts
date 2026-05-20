@@ -6,9 +6,9 @@ import { createUser, findUserByEmail } from '@/lib/db/repositories/users'
 export const dynamic = 'force-dynamic'
 
 export async function POST(request: Request) {
-  initializeDatabase()
-
   try {
+    initializeDatabase()
+
     const body = await request.json()
     const email = String(body.email ?? '').trim().toLowerCase()
     const password = String(body.password ?? '')
@@ -29,7 +29,8 @@ export async function POST(request: Request) {
     const response = NextResponse.json({ user })
     await setSessionCookie(response, user)
     return response
-  } catch {
+  } catch (error) {
+    console.error('[POST /api/auth/register]', error)
     return NextResponse.json({ error: 'Не удалось зарегистрироваться' }, { status: 500 })
   }
 }
