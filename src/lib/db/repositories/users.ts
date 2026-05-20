@@ -84,6 +84,26 @@ export async function createUser(email: string, password: string) {
   return mapPublicUser(user as UserRecord)
 }
 
+export async function createUserWithRole(email: string, password: string, role: UserRole) {
+  const supabase = getSupabaseAdmin()
+  const now = nowIso()
+  const normalizedEmail = email.trim().toLowerCase()
+  const user: Database['public']['Tables']['users']['Insert'] = {
+    id: createId('usr'),
+    email: normalizedEmail,
+    password_hash: bcrypt.hashSync(password, 10),
+    role,
+    avatar_url: null,
+    created_at: now,
+    updated_at: now,
+  }
+
+  const { error } = await supabase.from('users' as never).insert(user as never)
+  if (error) throw error
+
+  return mapPublicUser(user as UserRecord)
+}
+
 export async function verifyUserCredentials(email: string, password: string) {
   const user = await findUserByEmail(email)
 
