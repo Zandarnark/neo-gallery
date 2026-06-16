@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 import { useAuthStore } from '@/stores/auth-store'
 import { useRouter } from 'next/navigation'
-import { useManageExhibitions, useMyArtworks } from '@/hooks/use-api'
+import { readApiResponse, useManageExhibitions, useMyArtworks } from '@/hooks/use-api'
 import { BarChart3, Eye, ShoppingCart, TrendingUp, Users, Trash2, Plus } from 'lucide-react'
 import { motion } from 'framer-motion'
 import { ScrollReveal, StaggerContainer, StaggerItem, CountUp } from '@/components/effects/scroll-reveal'
@@ -46,6 +46,7 @@ export default function DashboardPage() {
   const { data: exhibitionsData } = useManageExhibitions(!!user && (user.role === 'artist' || user.role === 'admin'))
   const [newArtwork, setNewArtwork] = useState(emptyArtwork())
   const [editableArtworks, setEditableArtworks] = useState<ArtworkRow[]>([])
+  const [notice, setNotice] = useState<{ type: 'success' | 'error'; text: string } | null>(null)
 
   useEffect(() => {
     if (!user || (user.role !== 'artist' && user.role !== 'admin')) {
@@ -57,7 +58,9 @@ export default function DashboardPage() {
     setEditableArtworks(((data?.artworks ?? []) as ArtworkRow[]).map((item) => ({ ...item })))
   }, [data])
 
-  const exhibitions = (exhibitionsData?.exhibitions ?? []) as Array<{ id: string; title: string }>
+  const exhibitions = ((exhibitionsData?.exhibitions ?? []) as Array<{ id: string; title: string; status?: string }>).filter(
+    (exhibition) => exhibition.status === 'published'
+  )
   const artistWorks = editableArtworks
   const totalRevenue = artistWorks.reduce((sum, a) => sum + (a.price || 0), 0)
   const totalViews = artistWorks.length * 173 + 291
@@ -70,10 +73,14 @@ export default function DashboardPage() {
     { icon: Users, label: 'Доход', value: totalRevenue, suffix: ' ₽', change: 'За всё время', color: 'text-accent' },
   ]
 
+  function showNotice(type: 'success' | 'error', text: string) {
+    setNotice({ type, text })
+  }
+
   async function createArtworkItem() {
     if (!newArtwork.title.trim() || !newArtwork.exhibition_id) return
 
-    await fetch('/api/artworks/mine', {
+    const response = await fetch('/api/artworks/mine', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       credentials: 'include',
@@ -83,12 +90,15 @@ export default function DashboardPage() {
       }),
     })
 
+    await readApiResponse<{ artwork: ArtworkRow; error?: string }>(response)
+
     setNewArtwork(emptyArtwork())
     await refetch()
+    showNotice('success', 'Работа создана')
   }
 
   async function saveArtworkItem(artwork: ArtworkRow) {
-    await fetch(`/api/artworks/mine/${artwork.id}`, {
+    const response = await fetch(`/api/artworks/mine/${artwork.id}`, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
       credentials: 'include',
@@ -97,12 +107,18 @@ export default function DashboardPage() {
         thumb_url: artwork.thumb_url || artwork.file_url,
       }),
     })
+
+    await readApiResponse<{ artwork: ArtworkRow; error?: string }>(response)
+
     await refetch()
+    showNotice('success', 'Работа сохранена')
   }
 
   async function removeArtworkItem(id: string) {
-    await fetch(`/api/artworks/mine/${id}`, { method: 'DELETE', credentials: 'include' })
+    const response = await fetch(`/api/artworks/mine/${id}`, { method: 'DELETE', credentials: 'include' })
+    await readApiResponse<{ success?: boolean; error?: string }>(response)
     await refetch()
+    showNotice('success', 'Работа удалена')
   }
 
   async function uploadImage(file: File) {
@@ -140,6 +156,12 @@ export default function DashboardPage() {
           <h1 className="mb-2 text-3xl font-bold">Кабинет автора</h1>
           <p className="mb-8 text-muted-foreground">Добавляйте и редактируйте свои работы внутри существующих выставок</p>
         </motion.div>
+
+        {notice && (
+          <div className={`mb-6 rounded-xl border px-4 py-3 text-sm ${notice.type === 'success' ? 'border-success/30 bg-success/10 text-success' : 'border-destructive/30 bg-destructive/10 text-destructive'}`}>
+            {notice.text}
+          </div>
+        )}
 
         <StaggerContainer staggerDelay={0.1} className="mb-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
           {stats.map((stat) => (
@@ -212,7 +234,16 @@ export default function DashboardPage() {
               <input value={newArtwork.position_x} onChange={(e) => setNewArtwork((s) => ({ ...s, position_x: e.target.value }))} placeholder="X" className="rounded-lg border border-border bg-background px-3 py-2 text-sm" />
               <input value={newArtwork.position_y} onChange={(e) => setNewArtwork((s) => ({ ...s, position_y: e.target.value }))} placeholder="Y" className="rounded-lg border border-border bg-background px-3 py-2 text-sm" />
               <input value={newArtwork.position_z} onChange={(e) => setNewArtwork((s) => ({ ...s, position_z: e.target.value }))} placeholder="Z" className="rounded-lg border border-border bg-background px-3 py-2 text-sm" />
-              <button onClick={createArtworkItem} className="btn-primary gap-2"><Plus className="h-4 w-4" />Добавить работу</button>
+              <button
+                onClick={async () => {
+                  try {
+                    await createArtworkItem()
+                  } catch (error) {
+                    showNotice('error', error instanceof Error ? error.message : 'Не удалось создать работу')
+                  }
+                }}
+                className="btn-primary gap-2"
+              ><Plus className="h-4 w-4" />Добавить работу</button>
             </div>
           </div>
         </ScrollReveal>
@@ -229,8 +260,26 @@ export default function DashboardPage() {
                       <div className="mb-3 flex items-center justify-between gap-2">
                         <h3 className="font-semibold">{artwork.title}</h3>
                         <div className="flex items-center gap-2">
-                          <button onClick={() => saveArtworkItem(artwork)} className="btn-secondary px-3 py-2 text-sm">Сохранить</button>
-                          <button onClick={() => removeArtworkItem(artwork.id)} className="rounded p-2 text-destructive hover:bg-destructive/10"><Trash2 className="h-4 w-4" /></button>
+                          <button
+                            onClick={async () => {
+                              try {
+                                await saveArtworkItem(artwork)
+                              } catch (error) {
+                                showNotice('error', error instanceof Error ? error.message : 'Не удалось сохранить работу')
+                              }
+                            }}
+                            className="btn-secondary px-3 py-2 text-sm"
+                          >Сохранить</button>
+                          <button
+                            onClick={async () => {
+                              try {
+                                await removeArtworkItem(artwork.id)
+                              } catch (error) {
+                                showNotice('error', error instanceof Error ? error.message : 'Не удалось удалить работу')
+                              }
+                            }}
+                            className="rounded p-2 text-destructive hover:bg-destructive/10"
+                          ><Trash2 className="h-4 w-4" /></button>
                         </div>
                       </div>
                       <div className="grid gap-2">
