@@ -3,7 +3,6 @@
 import { Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Canvas } from '@react-three/fiber'
 import {
-  Environment,
   Float,
   Html,
   OrbitControls,
@@ -641,7 +640,6 @@ function SakuraPavilion({ artworks, onArtworkClick }: { artworks: ArtworkData[];
           onClick={onArtworkClick}
         />
       ))}
-      <Environment preset="sunset" />
     </group>
   )
 }
@@ -724,7 +722,6 @@ function NeonAtrium({ artworks, onArtworkClick }: { artworks: ArtworkData[]; onA
           onClick={onArtworkClick}
         />
       ))}
-      <Environment preset="night" />
     </group>
   )
 }
@@ -795,7 +792,6 @@ function CosmosMuseum({ artworks, onArtworkClick }: { artworks: ArtworkData[]; o
           onClick={onArtworkClick}
         />
       ))}
-      <Environment preset="dawn" />
     </group>
   )
 }
